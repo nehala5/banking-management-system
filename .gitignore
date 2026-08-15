@@ -1,0 +1,15 @@
+# Project files
+build/
+*.o
+*.obj
+*.exe
+*.out
+
+# Runtime data (generated on first run)
+data/
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
