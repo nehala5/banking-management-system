@@ -168,9 +168,10 @@ bool Database::seedDemoData() {
     acc.status = AccountStatus::ACTIVE;
     acc.createdAt = Utils::now();
     acc.lastInterestApplied = Utils::today();
-    accounts_.push_back(acc);
 
-    // A little transaction history to make reports feel real.
+    // A little transaction history to make reports feel real. The running
+    // balance of the final transaction becomes the account balance, so the
+    // statement stays internally consistent.
     auto push = [&](TxType t, long long amt, long long bal,
                     const std::string& other, const std::string& remark) {
         Transaction tx;
@@ -190,6 +191,7 @@ bool Database::seedDemoData() {
     push(TxType::DEPOSIT, 100000, 9840020, "Self deposit", "Savings deposit");
     push(TxType::INTEREST, 2716, 9842736, "Bank", "Monthly interest @3.5% p.a.");
     acc.balancePaise = 9842736;
+    accounts_.push_back(acc);
     return true;
 }
 

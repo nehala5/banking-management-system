@@ -49,6 +49,9 @@ Requirements: a C++17 compiler. On Windows, [MinGW-w64](https://winlibs.com/) `g
 build.bat
 build\onesky_bank.exe
 ```
+The Windows build is linked **statically** (`-static`), so the resulting
+`onesky_bank.exe` runs on any 64-bit Windows without needing MinGW DLLs on the
+PATH.
 
 **Linux / macOS (or Windows with make)**
 ```sh

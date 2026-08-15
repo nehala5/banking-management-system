@@ -15,22 +15,22 @@ std::string Loan::statusName() const {
     return "Unknown";
 }
 
-std::string Loan::serialize() const {
+std::string Loan::serialize(const Loan& l) {
     std::ostringstream os;
-    os << loanId << '|'
-       << customerId << '|'
-       << accountNumber << '|'
-       << principalPaise << '|'
-       << outstandingPaise << '|'
-       << ratePerAnnum << '|'
-       << tenureMonths << '|'
-       << emiPaise << '|'
-       << emiPaidCount << '|'
-       << amountPaidPaise << '|'
-       << static_cast<int>(status) << '|'
-       << appliedDate << '|'
-       << decisionDate << '|'
-       << nextDueDate;
+    os << l.loanId << '|'
+       << l.customerId << '|'
+       << l.accountNumber << '|'
+       << l.principalPaise << '|'
+       << l.outstandingPaise << '|'
+       << l.ratePerAnnum << '|'
+       << l.tenureMonths << '|'
+       << l.emiPaise << '|'
+       << l.emiPaidCount << '|'
+       << l.amountPaidPaise << '|'
+       << static_cast<int>(l.status) << '|'
+       << l.appliedDate << '|'
+       << l.decisionDate << '|'
+       << l.nextDueDate;
     return os.str();
 }
 

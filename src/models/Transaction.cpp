@@ -30,16 +30,16 @@ std::string Transaction::sign() const {
     }
 }
 
-std::string Transaction::serialize() const {
+std::string Transaction::serialize(const Transaction& tx) {
     std::ostringstream os;
-    os << id << '|'
-       << accountNumber << '|'
-       << static_cast<int>(type) << '|'
-       << amountPaise << '|'
-       << balanceAfterPaise << '|'
-       << counterparty << '|'
-       << timestamp << '|'
-       << remark;
+    os << tx.id << '|'
+       << tx.accountNumber << '|'
+       << static_cast<int>(tx.type) << '|'
+       << tx.amountPaise << '|'
+       << tx.balanceAfterPaise << '|'
+       << tx.counterparty << '|'
+       << tx.timestamp << '|'
+       << tx.remark;
     return os.str();
 }
 

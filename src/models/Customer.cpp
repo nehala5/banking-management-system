@@ -9,16 +9,16 @@ std::string Customer::roleName() const {
     return role == Role::ADMIN ? "ADMIN" : "CUSTOMER";
 }
 
-std::string Customer::serialize() const {
+std::string Customer::serialize(const Customer& c) {
     std::ostringstream os;
-    os << id << '|'
-       << name << '|'
-       << email << '|'
-       << phone << '|'
-       << address << '|'
-       << pinHash << '|'
-       << static_cast<int>(role) << '|'
-       << createdAt;
+    os << c.id << '|'
+       << c.name << '|'
+       << c.email << '|'
+       << c.phone << '|'
+       << c.address << '|'
+       << c.pinHash << '|'
+       << static_cast<int>(c.role) << '|'
+       << c.createdAt;
     return os.str();
 }
 

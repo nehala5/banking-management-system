@@ -20,7 +20,7 @@ struct Customer {
     std::string roleName() const;
 
     // Serialization: one line of '|' separated fields.
-    std::string serialize() const;
+    static std::string serialize(const Customer& c);
     static bool deserialize(const std::string& line, Customer& out);
 };
 

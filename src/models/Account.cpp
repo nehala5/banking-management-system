@@ -13,16 +13,16 @@ std::string Account::statusName() const {
     return status == AccountStatus::ACTIVE ? "Active" : "Closed";
 }
 
-std::string Account::serialize() const {
+std::string Account::serialize(const Account& a) {
     std::ostringstream os;
-    os << accountNumber << '|'
-       << customerId << '|'
-       << static_cast<int>(type) << '|'
-       << balancePaise << '|'
-       << interestRate << '|'
-       << static_cast<int>(status) << '|'
-       << createdAt << '|'
-       << lastInterestApplied;
+    os << a.accountNumber << '|'
+       << a.customerId << '|'
+       << static_cast<int>(a.type) << '|'
+       << a.balancePaise << '|'
+       << a.interestRate << '|'
+       << static_cast<int>(a.status) << '|'
+       << a.createdAt << '|'
+       << a.lastInterestApplied;
     return os.str();
 }
 

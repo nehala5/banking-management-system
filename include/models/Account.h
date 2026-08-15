@@ -22,7 +22,8 @@ struct Account {
     std::string typeName() const;
     std::string statusName() const;
 
-    std::string serialize() const;
+    // Serialization: one line of '|' separated fields.
+    static std::string serialize(const Account& a);
     static bool deserialize(const std::string& line, Account& out);
 };
 

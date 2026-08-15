@@ -26,7 +26,7 @@ struct Loan {
 
     std::string statusName() const;
 
-    std::string serialize() const;
+    static std::string serialize(const Loan& l);
     static bool deserialize(const std::string& line, Loan& out);
 };
 

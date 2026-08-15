@@ -4,7 +4,7 @@ setlocal
 cd /d "%~dp0"
 if not exist build mkdir build
 
-g++ -std=c++17 -Wall -Wextra -Iinclude ^
+g++ -std=c++17 -Wall -Wextra -static -Iinclude ^
   src\main.cpp ^
   src\models\Customer.cpp ^
   src\models\Account.cpp ^
