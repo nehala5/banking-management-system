@@ -62,6 +62,42 @@ CREATE TABLE IF NOT EXISTS loans (
     decision_date      TEXT NOT NULL DEFAULT '',
     next_due_date      TEXT NOT NULL DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS deposits (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id            INTEGER NOT NULL REFERENCES users(id),
+    account_number     TEXT NOT NULL REFERENCES accounts(account_number),
+    principal_paise    INTEGER NOT NULL,
+    rate               REAL NOT NULL,
+    tenure_months      INTEGER NOT NULL,
+    maturity_paise     INTEGER NOT NULL,
+    status             TEXT NOT NULL DEFAULT 'Active',
+    start_date         TEXT NOT NULL,
+    maturity_date      TEXT NOT NULL,
+    penalty_paise      INTEGER NOT NULL DEFAULT 0,
+    closed_amount_paise INTEGER NOT NULL DEFAULT 0,
+    closed_date        TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS cards (
+    card_number    TEXT PRIMARY KEY,
+    user_id        INTEGER NOT NULL REFERENCES users(id),
+    account_number TEXT NOT NULL REFERENCES accounts(account_number),
+    pin_hash       TEXT NOT NULL,
+    expiry         TEXT NOT NULL,
+    status         TEXT NOT NULL DEFAULT 'Active',
+    issued_at      TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    title      TEXT NOT NULL,
+    message    TEXT NOT NULL,
+    kind       TEXT NOT NULL DEFAULT 'info',
+    is_read    INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
 """
 
 
@@ -150,17 +186,54 @@ def _seed(conn: sqlite3.Connection):
         txs,
     )
 
+    # A demo fixed deposit for Aarav (₹5,000 @ 7% for 12 months).
+    fd_principal = 500000
+    fd_rate = 7.0
+    fd_months = 12
+    conn.execute(
+        "INSERT INTO deposits (user_id, account_number, principal_paise, rate,"
+        " tenure_months, maturity_paise, status, start_date, maturity_date)"
+        " VALUES (?, ?, ?, ?, ?, ?, 'Active', ?, ?)",
+        (1001, "OB000001", fd_principal, fd_rate, fd_months,
+         money.fd_maturity(fd_principal, fd_rate, fd_months),
+         money.today(), money.add_months(money.today(), fd_months)),
+    )
+
+    # A demo debit card for Aarav's savings account (PIN 1111).
+    demo_card = "4871020345661234"
+    conn.execute(
+        "INSERT INTO cards (card_number, user_id, account_number, pin_hash,"
+        " expiry, status, issued_at) VALUES (?, 1001, 'OB000001', ?, ?, 'Active', ?)",
+        (demo_card, money.hash_pin("1111", money.salt_for_card(demo_card)),
+         money.card_expiry(), now),
+    )
+
+    # A few starter notifications.
+    conn.executemany(
+        "INSERT INTO notifications (user_id, title, message, kind, created_at)"
+        " VALUES (?, ?, ?, ?, ?)",
+        [
+            (1001, "Welcome to OneSky Bank", "Your savings and checking accounts are ready. "
+             "Explore the dashboard, deposits and loans.", "info", now),
+            (1001, "Interest credited", "Monthly interest has been applied to your savings "
+             "account OB000001.", "success", now),
+            (1001, "FD issued", f"A fixed deposit of ₹5,000.00 @ 7.0% for 12 months was opened "
+             "against account OB000001.", "money", now),
+            (1001, "Debit card issued", "Your OneSky debit card ending 1234 is active on "
+             "account OB000001.", "success", now),
+        ],
+    )
+
     conn.commit()
 
 
 def init_db():
-    """Create tables and seed demo data if the database does not exist yet."""
-    if os.path.exists(_db_path()):
-        return
+    """Create any missing tables and seed demo data on a brand-new database."""
     conn = _connect()
     try:
         conn.executescript(SCHEMA)
-        _seed(conn)
+        if not conn.execute("SELECT 1 FROM meta").fetchone():
+            _seed(conn)
     finally:
         conn.close()
 

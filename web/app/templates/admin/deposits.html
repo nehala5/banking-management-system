@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set active_page = 'admin-deposits' %}
+{% block title %}Fixed deposits — OneSky Bank{% endblock %}
+
+{% block content %}
+<div class="flex between wrap">
+  <div>
+    <h1>Fixed deposit book</h1>
+    <p class="muted">{{ active|length }} active deposits worth {{ book_paise|inr }}.</p>
+  </div>
+  <form method="post" action="{{ url_for('admin.mature_deposits') }}">
+    <button class="btn btn-primary" type="submit">⚡ Process matured deposits</button>
+  </form>
+</div>
+
+<div class="card" style="margin-top:18px; padding:0">
+  {% if fds %}
+  <div class="table-wrap" style="border:none">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Customer</th>
+          <th>Account</th>
+          <th class="num">Principal</th>
+          <th class="num">Rate</th>
+          <th>Started</th>
+          <th>Matures</th>
+          <th class="num">Maturity value</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fd in fds %}
+        <tr>
+          <td class="mono">{{ fd.id }}</td>
+          <td>{{ fd.user_name }} <span class="muted mono">#{{ fd.user_id }}</span></td>
+          <td class="mono">{{ fd.account_number }}</td>
+          <td class="num mono">{{ fd.principal_paise|inr }}</td>
+          <td class="num">{{ fd.rate|round(1) }}%</td>
+          <td class="muted">{{ fd.start_date }}</td>
+          <td class="mono">{{ fd.maturity_date }}</td>
+          <td class="num mono">{{ fd.maturity_paise|inr }}</td>
+          <td><span class="pill {{ 'pill-active' if fd.status == 'Active' else 'pill-pending' if fd.status == 'Matured' else 'pill-closed' }}">{{ fd.status }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="muted center">No fixed deposits on the books.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty" style="border:none"><div class="empty-icon">🏦</div>No fixed deposits yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

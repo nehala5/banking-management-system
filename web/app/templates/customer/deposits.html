@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% set active_page = 'deposits' %}
+{% block title %}Fixed deposits — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>Fixed deposits</h1>
+<p class="muted">Lock money for a fixed term at a guaranteed rate. Interest compounds quarterly.</p>
+
+<div class="grid grid-4" style="margin-top:18px">
+  <div class="stat brand">
+    <span class="stat-label">Active deposits</span>
+    <span class="stat-value">{{ fds|selectattr('status', 'equalto', 'Active')|list|length }}</span>
+    <span class="stat-sub">on your account</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Total locked in</span>
+    <span class="stat-value">{{ fds|selectattr('status', 'equalto', 'Active')|map(attribute='principal_paise')|sum|inr }}</span>
+    <span class="stat-sub">principal, not yet mature</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Best rate</span>
+    <span class="stat-value">7.5%</span>
+    <span class="stat-sub">for 24+ months</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Minimum</span>
+    <span class="stat-value">₹1,000</span>
+    <span class="stat-sub">tenure 3–60 months</span>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <!-- ---------- Open an FD ---------- -->
+  <div class="card">
+    <div class="card-head"><h3>Open a fixed deposit</h3></div>
+    <form class="form-grid" method="post" action="{{ url_for('customer.deposits') }}">
+      <div class="form-row">
+        <label for="fd-account">Fund from savings account</label>
+        <select id="fd-account" name="account">
+          {% for a in savings %}
+          <option value="{{ a.account_number }}">{{ a.account_number }} ({{ a.balance_paise|inr }})</option>
+          {% else %}
+          <option value="">— no active savings account —</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px">
+        <div class="form-row">
+          <label for="fd-amount">Amount</label>
+          <input id="fd-amount" name="amount" inputmode="decimal" class="mono" placeholder="e.g. 5000" required>
+        </div>
+        <div class="form-row">
+          <label for="fd-months">Tenure (months)</label>
+          <input id="fd-months" name="months" inputmode="numeric" value="12" required>
+        </div>
+      </div>
+
+      <div class="emi-quote" id="fd-quote" style="display:none">
+        <div class="flex between"><span class="hint">Rate</span><span class="emi-big" id="fd-rate">—</span></div>
+        <div class="emi-row"><span>Matures on</span><span id="fd-maturity-date">—</span></div>
+        <div class="emi-row"><span>Interest earned</span><span id="fd-interest">—</span></div>
+        <div class="emi-row total"><span>Maturity value</span><span id="fd-maturity">—</span></div>
+      </div>
+
+      <button class="btn btn-primary" type="submit" {{ 'disabled' if not savings }}>Lock it in</button>
+      {% if not savings %}<span class="hint">You need an active savings account to open an FD.</span>{% endif %}
+    </form>
+
+    <div class="divider"></div>
+    <p class="hint" style="margin:0">
+      <strong>Rate tiers:</strong> 3–5 mo → 5.5% &nbsp;·&nbsp; 6–11 mo → 6.5% &nbsp;·&nbsp; 12–23 mo → 7.0% &nbsp;·&nbsp; 24+ mo → 7.5%
+    </p>
+  </div>
+
+  <!-- ---------- My FDs ---------- -->
+  <div>
+    {% for fd in fds %}
+    <div class="card">
+      <div class="flex between wrap">
+        <div>
+          <h3 style="margin:0">FD #{{ fd.id }}
+            <span class="pill {{ 'pill-active' if fd.status == 'Active' else 'pill-pending' if fd.status == 'Matured' else 'pill-closed' }}">{{ fd.status }}</span>
+          </h3>
+          <p class="muted" style="font-size:.82rem; margin-top:4px">
+            {{ fd.account_number }} · opened {{ fd.start_date }}
+          </p>
+        </div>
+        {% if fd.status == 'Active' %}
+        <form method="post" action="{{ url_for('customer.close_fd', deposit_id=fd.id) }}"
+              onsubmit="return confirm('Close FD #{{ fd.id }} early? Interest is forfeited and a 0.5% penalty applies.')">
+          <button class="btn btn-ghost btn-sm" type="submit">Close early</button>
+        </form>
+        {% endif %}
+      </div>
+
+      <div class="stack" style="margin-top:12px">
+        <div class="flex between"><span class="muted">Principal</span><strong class="mono">{{ fd.principal_paise|inr }}</strong></div>
+        <div class="flex between"><span class="muted">Rate</span><span class="mono">{{ fd.rate|round(1) }}% p.a. (quarterly)</span></div>
+        <div class="flex between"><span class="muted">Tenure</span><span class="mono">{{ fd.tenure_months }} months</span></div>
+        <div class="flex between"><span class="muted">Matures on</span><span class="mono">{{ fd.maturity_date }}</span></div>
+        <div class="flex between" style="border-top:1px solid var(--border); padding-top:10px">
+          <span class="muted">Maturity value</span>
+          <strong class="mono" style="color:var(--brand-2)">{{ fd.maturity_paise|inr }}</strong>
+        </div>
+        {% if fd.status == 'Matured' %}
+        <div class="flex between"><span class="muted">Credited back</span><span class="mono">{{ fd.closed_amount_paise|inr }}</span></div>
+        {% endif %}
+        {% if fd.status == 'Closed' %}
+        <div class="flex between"><span class="muted">Refunded (after penalty)</span><span class="mono">{{ fd.closed_amount_paise|inr }}</span></div>
+        <div class="flex between"><span class="muted">Penalty</span><span class="mono" style="color:var(--red)">-{{ fd.penalty_paise|inr }}</span></div>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">🏦</div>
+      No fixed deposits yet. Open one to start earning more.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

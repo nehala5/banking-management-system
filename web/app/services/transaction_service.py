@@ -2,6 +2,7 @@
 from .. import money
 from ..database import get_db
 from .account_service import get_account
+from . import notification_service
 
 TYPE_MAP = {
     "DEPOSIT": "Deposit",
@@ -11,6 +12,9 @@ TYPE_MAP = {
     "OPENING": "Opening",
     "INTEREST": "Interest",
     "CLOSED": "Closed",
+    "FD_ISSUED": "FD opened",
+    "FD_MATURED": "FD matured",
+    "FD_CLOSED": "FD closed",
 }
 
 
@@ -41,6 +45,12 @@ def deposit(number, paise, counterparty="Cash deposit", remark="Deposit"):
         (new_balance, number),
     )
     _record(db, number, "DEPOSIT", paise, new_balance, counterparty, remark)
+    notification_service.notify(
+        acct["user_id"], "Money in",
+        f"{money.format_paise(paise)} deposited to {number} ({remark or counterparty}). "
+        f"New balance {money.format_paise(new_balance)}.",
+        "success",
+    )
     db.commit()
     return None
 
@@ -63,6 +73,12 @@ def withdraw(number, paise, counterparty="Cash withdrawal", remark="Withdrawal")
         (new_balance, number),
     )
     _record(db, number, "WITHDRAW", paise, new_balance, counterparty, remark)
+    notification_service.notify(
+        acct["user_id"], "Money out",
+        f"{money.format_paise(paise)} withdrawn from {number} ({remark or counterparty}). "
+        f"New balance {money.format_paise(new_balance)}.",
+        "warning",
+    )
     db.commit()
     return None
 
@@ -102,6 +118,18 @@ def transfer(from_number, to_number, paise, remark="Transfer"):
     )
     _record(db, from_number, "TRANSFER_OUT", paise, new_src, to_number, f"{remark} to {dst_label}")
     _record(db, to_number, "TRANSFER_IN", paise, new_dst, from_number, f"{remark} from {src_label}")
+    notification_service.notify(
+        src["user_id"], "Transfer sent",
+        f"{money.format_paise(paise)} sent from {from_number} to {to_number} "
+        f"({dst_label or 'another account'}).",
+        "warning",
+    )
+    notification_service.notify(
+        dst["user_id"], "Transfer received",
+        f"{money.format_paise(paise)} received into {to_number} from {from_number} "
+        f"({src_label or 'another account'}).",
+        "success",
+    )
     db.commit()
     return None
 

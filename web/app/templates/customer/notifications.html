@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% set active_page = 'profile' %}
+{% block title %}Notifications — OneSky Bank{% endblock %}
+
+{% block content %}
+<div class="flex between wrap">
+  <div>
+    <h1>Notifications</h1>
+    <p class="muted">{{ unread }} unread of {{ rows|length }} total.</p>
+  </div>
+  {% if unread %}
+  <form method="post" action="{{ url_for('customer.notifications_read_all') }}">
+    <button class="btn btn-outline btn-sm" type="submit">Mark all as read</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:18px; max-width:760px">
+  {% if rows %}
+  <ul class="notif-list">
+    {% for n in rows %}
+    <li class="notif {{ 'unread' if not n.is_read }} notif-{{ n.kind }}">
+      <div class="notif-dot" aria-hidden="true"></div>
+      <div class="notif-body">
+        <div class="flex between wrap">
+          <strong>{{ n.title }}</strong>
+          <span class="t-time">{{ n.created_at }}</span>
+        </div>
+        <p class="muted" style="margin:4px 0 0">{{ n.message }}</p>
+      </div>
+      {% if not n.is_read %}
+      <form method="post" action="{{ url_for('customer.notification_read', notif_id=n.id) }}">
+        <button class="btn btn-ghost btn-sm" type="submit">Mark read</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">🔕</div>
+    Nothing here yet. Notifications appear when money moves or the bank updates you.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -6,13 +6,17 @@
   {%- elif type == 'OPENING' %}Opening
   {%- elif type == 'INTEREST' %}Interest
   {%- elif type == 'CLOSED' %}Closed
+  {%- elif type == 'FD_ISSUED' %}FD opened
+  {%- elif type == 'FD_MATURED' %}FD matured
+  {%- elif type == 'FD_CLOSED' %}FD closed
   {%- else %}{{ type }}{% endif -%}
 {% endmacro %}
 
 {% macro tx_is_credit(type) -%}
-  {{- 'true' if type == 'DEPOSIT' or type == 'TRANSFER_IN' or type == 'INTEREST' else 'false' -}}
+  {{- 'true' if type == 'DEPOSIT' or type == 'TRANSFER_IN' or type == 'INTEREST'
+      or type == 'FD_MATURED' or type == 'FD_CLOSED' else 'false' -}}
 {%- endmacro %}
 
 {% macro tx_amount(type, paise) -%}
-  {%- if type == 'DEPOSIT' or type == 'TRANSFER_IN' or type == 'INTEREST' -%}+{{ paise|inr }}{%- else -%}-{{ paise|inr }}{%- endif -%}
+  {%- if tx_is_credit(type) == 'true' -%}+{{ paise|inr }}{%- else -%}-{{ paise|inr }}{%- endif -%}
 {%- endmacro %}

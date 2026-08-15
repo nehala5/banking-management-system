@@ -21,6 +21,13 @@ def bank_overview():
         "SELECT COALESCE(SUM(outstanding_paise), 0) AS t FROM loans"
         " WHERE status = 'Active'"
     ).fetchone()["t"]
+    fd_book = db.execute(
+        "SELECT COALESCE(SUM(principal_paise), 0) AS t FROM deposits"
+        " WHERE status = 'Active'"
+    ).fetchone()["t"]
+    fd_count = db.execute(
+        "SELECT COUNT(*) AS c FROM deposits WHERE status = 'Active'"
+    ).fetchone()["c"]
     pending_loans = db.execute(
         "SELECT COUNT(*) AS c FROM loans WHERE status = 'Pending'"
     ).fetchone()["c"]
@@ -34,6 +41,8 @@ def bank_overview():
         "active_accounts": accounts,
         "total_deposits_paise": deposits,
         "loan_book_paise": loan_book,
+        "fd_book_paise": fd_book,
+        "fd_count": fd_count,
         "pending_loans": pending_loans,
         "active_loans": active_loans,
         "avg_balance_paise": avg_balance,

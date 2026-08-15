@@ -19,12 +19,14 @@ def create_app() -> Flask:
     @app.context_processor
     def inject_globals():
         from .services.auth_service import get_user
+        from .services.notification_service import unread_count
 
         user_id = session.get("user_id")
         user = get_user(user_id) if user_id else None
         return {
             "current_user": user,
             "greeting": money.greeting(),
+            "unread_notifications": unread_count(user_id) if user else 0,
         }
 
     from .routes import register_blueprints

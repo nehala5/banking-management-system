@@ -35,6 +35,11 @@
     <span class="stat-value">{{ overview.pending_loans }}</span>
     <span class="stat-sub">awaiting approval</span>
   </div>
+  <div class="stat brand">
+    <span class="stat-label">FD book</span>
+    <span class="stat-value">{{ overview.fd_book_paise|inr }}</span>
+    <span class="stat-sub">{{ overview.fd_count }} active deposits</span>
+  </div>
 </div>
 
 <div class="grid grid-2" style="margin-top:18px">

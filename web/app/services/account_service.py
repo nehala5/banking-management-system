@@ -1,6 +1,7 @@
 """Account management: open/close, interest rates and monthly interest accrual."""
 from .. import money
 from ..database import get_db, next_id
+from . import notification_service
 
 ACCOUNT_TYPES = ("Savings", "Checking")
 
@@ -33,6 +34,12 @@ def open_account(user_id, acct_type, opening_paise, remark="New account opened",
             " balance_after_paise, counterparty, timestamp, remark)"
             " VALUES (?, 'OPENING', ?, ?, ?, ?, ?)",
             (number, opening_paise, opening_paise, "OneSky Bank", now, remark),
+        )
+        notification_service.notify(
+            user_id, "Account opened",
+            f"A {acct_type} account {number} was opened. "
+            f"Balance {money.format_paise(opening_paise)}.",
+            "success",
         )
         db.commit()
     except Exception:
@@ -102,6 +109,11 @@ def close_account(number):
         " VALUES (?, 'CLOSED', 0, 0, 'OneSky Bank', ?, 'Account closed')",
         (number, money.now()),
     )
+    notification_service.notify(
+        acct["user_id"], "Account closed",
+        f"Account {number} was closed.",
+        "info",
+    )
     db.commit()
     return None
 
@@ -134,6 +146,12 @@ def apply_monthly_interest():
             " balance_after_paise, counterparty, timestamp, remark)"
             " VALUES (?, 'INTEREST', ?, ?, 'OneSky Bank', ?, 'Monthly interest credit')",
             (acct["account_number"], interest, new_balance, now),
+        )
+        notification_service.notify(
+            acct["user_id"], "Interest credited",
+            f"{money.format_paise(interest)} interest was credited to {acct['account_number']} "
+            f"at {acct['interest_rate']:g}% p.a. New balance {money.format_paise(new_balance)}.",
+            "success",
         )
         total += interest
         count += 1

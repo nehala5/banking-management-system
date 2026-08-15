@@ -90,6 +90,30 @@ def salt_for(user_id) -> str:
     return f"onesky-salt-{user_id}"
 
 
+def salt_for_card(card_number: str) -> str:
+    """Per-card salt for card PIN hashes."""
+    return f"onesky-card-{card_number}"
+
+
+def fd_maturity(principal_paise: int, rate: float, months: int) -> int:
+    """Projected FD maturity value with quarterly compounding."""
+    r = rate / 400.0
+    n = months / 12.0
+    return round(principal_paise * (1 + r) ** (4 * n))
+
+
+def card_expiry() -> str:
+    """Expiry date MM/YY, three years from now."""
+    d = datetime.now()
+    year = d.year + 3
+    return f"{d.month:02d}/{year % 100:02d}"
+
+
+def mask_card(number: str) -> str:
+    """'XXXXXXXXXXXX4521' style masking of a 16-digit card number."""
+    return "XXXXXXXXXXXX" + number[-4:]
+
+
 def greeting() -> str:
     h = datetime.now().hour
     if h < 12:

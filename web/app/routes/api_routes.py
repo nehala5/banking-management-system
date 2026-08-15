@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request, session
 from .. import money
 from ..database import get_db
 from ..services import (
-    account_service, loan_service, report_service, transaction_service,
+    account_service, fd_service, loan_service, report_service, transaction_service,
 )
 from .decorators import admin_required, login_required
 
@@ -37,6 +37,32 @@ def emi():
         "emi_display": money.format_paise(emi),
         "total_display": money.format_paise(total),
         "interest_display": money.format_paise(interest),
+    })
+
+
+@api_bp.get("/fd")
+@login_required
+def fd_quote():
+    """Live FD quote: /api/fd?principal=500000&months=12"""
+    try:
+        principal, _ = money.parse_amount(request.args.get("principal", ""))
+        months = int(request.args.get("months", ""))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "Invalid parameters"}), 400
+    if not principal or not (3 <= months <= 60):
+        return jsonify({"ok": False, "error": "Out of range"}), 400
+
+    rate = fd_service.fd_rate_for(months)
+    maturity = fd_service.maturity_paise(principal, rate, months)
+    return jsonify({
+        "ok": True,
+        "rate": rate,
+        "maturity_date": money.add_months(money.today(), months),
+        "maturity_paise": maturity,
+        "interest_paise": maturity - principal,
+        "rate_display": f"{rate:g}% p.a.",
+        "maturity_display": money.format_paise(maturity),
+        "interest_display": money.format_paise(maturity - principal),
     })
 
 

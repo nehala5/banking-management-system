@@ -4,7 +4,7 @@ import math
 from .. import money
 from ..database import get_db, next_id
 from .account_service import get_account
-from . import transaction_service
+from . import notification_service, transaction_service
 
 
 def compute_emi(principal_paise, rate, months) -> int:
@@ -43,6 +43,12 @@ def apply_loan(user_id, account_number, principal_paise, rate, months):
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?)",
         (loan_id, user_id, account_number, principal_paise, principal_paise,
          rate, months, emi, money.now()),
+    )
+    notification_service.notify(
+        user_id, "Loan application submitted",
+        f"Application {loan_id} for {money.format_paise(principal_paise)} "
+        f"@ {rate:g}% over {months} months is awaiting admin approval.",
+        "info",
     )
     db.commit()
     return loan_id, None
@@ -109,6 +115,13 @@ def approve_loan(loan_id):
         db, loan["account_number"], "DEPOSIT", loan["principal_paise"], new_balance,
         "OneSky Bank", f"Loan disbursement {loan_id}",
     )
+    notification_service.notify(
+        loan["user_id"], "Loan approved",
+        f"Your loan {loan_id} was approved and {money.format_paise(loan['principal_paise'])} "
+        f"was disbursed to {loan['account_number']}. First EMI {money.format_paise(loan['emi_paise'])} "
+        f"due on {due_date}.",
+        "success",
+    )
     db.commit()
     return None
 
@@ -123,6 +136,12 @@ def reject_loan(loan_id):
     db.execute(
         "UPDATE loans SET status = 'Rejected', decision_date = ? WHERE loan_id = ?",
         (money.now(), loan_id),
+    )
+    notification_service.notify(
+        loan["user_id"], "Loan application rejected",
+        f"Your loan application {loan_id} for {money.format_paise(loan['principal_paise'])} "
+        f"was rejected by the bank.",
+        "error",
     )
     db.commit()
     return None
@@ -172,6 +191,13 @@ def pay_emi(loan_id):
     transaction_service._record(
         db, loan["account_number"], "WITHDRAW", due, new_balance,
         "OneSky Bank", f"EMI payment for {loan_id}",
+    )
+    status_text = "Loan fully repaid! 🎉" if outstanding <= 0 else f"Next due {next_due}."
+    notification_service.notify(
+        loan["user_id"], "EMI paid",
+        f"{money.format_paise(due)} paid towards {loan_id} "
+        f"(EMI {emi_count} of {loan['tenure_months']}). {status_text}",
+        "success",
     )
     db.commit()
     return None

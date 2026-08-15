@@ -6,7 +6,8 @@ from flask import (
 from .. import money
 from ..database import get_db
 from ..services import (
-    account_service, loan_service, report_service, transaction_service,
+    account_service, card_service, fd_service, loan_service,
+    report_service, transaction_service,
 )
 from .decorators import admin_required
 
@@ -65,12 +66,16 @@ def customer_detail(user_id):
         return render_template("errors/404.html"), 404
     accounts = account_service.accounts_of(user_id)
     loans = loan_service.loans_of(user_id)
+    fds = fd_service.fds_of(user_id)
+    cards = card_service.cards_of(user_id)
     summary = report_service.customer_summary(user_id)
     return render_template(
         "admin/customer_detail.html",
         user=user,
         accounts=accounts,
         loans=loans,
+        fds=fds,
+        cards=cards,
         summary=summary,
     )
 
@@ -183,6 +188,32 @@ def apply_interest():
     else:
         flash("No savings accounts earned interest this cycle.", "info")
     return redirect(url_for("admin.dashboard"))
+
+
+@admin_bp.get("/deposits")
+@admin_required
+def deposits():
+    fds = fd_service.all_fds()
+    active = [d for d in fds if d["status"] == "Active"]
+    book = sum(d["principal_paise"] for d in active)
+    return render_template(
+        "admin/deposits.html", fds=fds, active=active, book_paise=book
+    )
+
+
+@admin_bp.post("/deposits/mature")
+@admin_required
+def mature_deposits():
+    count, total = fd_service.process_maturities()
+    if count:
+        flash(
+            f"{count} fixed deposit(s) matured — {money.format_paise(total)} "
+            f"credited back to their accounts.",
+            "success",
+        )
+    else:
+        flash("No fixed deposits matured today.", "info")
+    return redirect(url_for("admin.deposits"))
 
 
 @admin_bp.get("/reports")

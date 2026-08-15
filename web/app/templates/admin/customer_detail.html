@@ -82,4 +82,54 @@
     </div>
   </div>
 </div>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <div class="card" style="padding:0">
+    <div class="card-head" style="padding:18px 20px 0"><h3>Debit cards</h3></div>
+    <div class="table-wrap" style="border:none; box-shadow:none">
+      <table class="data">
+        <thead>
+          <tr><th>Card</th><th>Account</th><th>Expiry</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for card in cards %}
+          <tr>
+            <td class="mono">•••• •••• •••• {{ card.card_number[-4:] }}</td>
+            <td class="mono">{{ card.account_number }}</td>
+            <td class="mono">{{ card.expiry }}</td>
+            <td><span class="pill {{ 'pill-active' if card.status == 'Active' else 'pill-rejected' }}">{{ card.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="muted center">No cards.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0">
+    <div class="card-head" style="padding:18px 20px 0"><h3>Fixed deposits</h3></div>
+    <div class="table-wrap" style="border:none; box-shadow:none">
+      <table class="data">
+        <thead>
+          <tr><th>#</th><th class="num">Principal</th><th class="num">Rate</th><th>Matures</th><th class="num">Value</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for fd in fds %}
+          <tr>
+            <td class="mono">{{ fd.id }}</td>
+            <td class="num mono">{{ fd.principal_paise|inr }}</td>
+            <td class="num">{{ fd.rate|round(1) }}%</td>
+            <td class="mono">{{ fd.maturity_date }}</td>
+            <td class="num mono">{{ fd.maturity_paise|inr }}</td>
+            <td><span class="pill {{ 'pill-active' if fd.status == 'Active' else 'pill-pending' if fd.status == 'Matured' else 'pill-closed' }}">{{ fd.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="muted center">No fixed deposits.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -12,14 +12,22 @@ HTML/CSS/JS frontend with live charts (Chart.js).
 - Deposit, withdraw and transfer money between accounts (own or other customers')
 - Full transaction history with running balances per account
 - Apply for loans with a **live EMI calculator**; pay EMIs one at a time
+- **Fixed deposits** — open an FD with quarterly compounding, live maturity quote,
+  early closure with penalty, auto-maturity crediting
+- **Debit cards** — instant Luhn-valid card issuance, card withdrawals, PIN change,
+  block/unblock
+- **Notifications** — in-app alerts for every deposit, transfer, loan decision,
+  EMI, FD and card event, with a bell badge and unread tracking
 - Download a plain-text account statement (same format as the C++ version)
 
 **Admins**
 - Bank dashboard: deposits, loan book, loan-to-deposit ratio, pending approvals
-- Customer directory with search and per-customer drill-down
+- Customer directory with search and per-customer drill-down (accounts, loans,
+  cards and fixed deposits)
 - Open / close accounts, set savings interest rates
 - Approve or reject loan applications (approval disburses to the account)
 - Apply monthly interest to all savings accounts
+- **FD desk** — full fixed-deposit book with one-click processing of matured deposits
 - Reports: top accounts, transaction-type breakdown, daily volume charts
 
 **Tech**

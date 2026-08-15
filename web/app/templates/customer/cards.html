@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% set active_page = 'cards' %}
+{% block title %}Debit cards — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>Debit cards</h1>
+<p class="muted">Issue a card against any of your accounts and use it for cash withdrawals.</p>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <!-- ---------- Issue a card ---------- -->
+  <div class="card">
+    <div class="card-head"><h3>Issue a new card</h3></div>
+    <form class="form-grid" method="post" action="{{ url_for('customer.cards') }}">
+      <input type="hidden" name="action" value="issue">
+      <div class="form-row">
+        <label for="ic_account">Link to account</label>
+        <select id="ic_account" name="account">
+          {% for a in accounts %}
+          <option value="{{ a.account_number }}">{{ a.type }} · {{ a.account_number }} ({{ a.balance_paise|inr }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="ic_pin">Choose a 4-digit card PIN</label>
+        <input id="ic_pin" name="pin" type="password" inputmode="numeric" maxlength="4" class="mono" placeholder="••••" required>
+      </div>
+      <button class="btn btn-primary" type="submit" {{ 'disabled' if not accounts }}>Issue card</button>
+    </form>
+    <p class="hint" style="margin-top:12px">
+      Cards are issued instantly with a Luhn-valid number and 3-year expiry. Tap "Withdraw" on a card to use it like an ATM card.
+    </p>
+  </div>
+
+  <!-- ---------- Cards ---------- -->
+  <div class="stack">
+    {% for card in cards %}
+    <div class="debit-card {{ 'blocked' if card.status == 'Blocked' }}">
+      <div class="dc-top">
+        <span class="dc-brand">OneSky Bank</span>
+        <span class="dc-status">{{ card.status }}</span>
+      </div>
+      <div class="dc-chip" aria-hidden="true"></div>
+      <div class="dc-number">•••• &nbsp;•••• &nbsp;•••• &nbsp;{{ card.card_number[-4:] }}</div>
+      <div class="dc-bottom">
+        <div>
+          <span class="dc-label">CARD HOLDER</span>
+          <span class="dc-value">{{ current_user.name.upper() }}</span>
+        </div>
+        <div>
+          <span class="dc-label">EXPIRES</span>
+          <span class="dc-value">{{ card.expiry }}</span>
+        </div>
+      </div>
+      <div class="dc-footer">
+        <span>{{ card.account_number }}</span>
+        <span>Contactless</span>
+      </div>
+    </div>
+
+    <div class="flex wrap" style="gap:8px">
+      {% if card.status == 'Active' %}
+      <details class="inline-details">
+        <summary class="btn btn-outline btn-sm">Withdraw</summary>
+        <form class="card" method="post" action="{{ url_for('customer.cards') }}" style="margin-top:8px">
+          <input type="hidden" name="action" value="withdraw">
+          <input type="hidden" name="card" value="{{ card.card_number }}">
+          <div class="flex" style="gap:8px">
+            <input name="amount" inputmode="decimal" class="mono" placeholder="Amount" required style="max-width:140px">
+            <button class="btn btn-success btn-sm" type="submit">Withdraw</button>
+          </div>
+        </form>
+      </details>
+      <details class="inline-details">
+        <summary class="btn btn-ghost btn-sm">Change PIN</summary>
+        <form class="card" method="post" action="{{ url_for('customer.cards') }}" style="margin-top:8px">
+          <input type="hidden" name="action" value="pin">
+          <input type="hidden" name="card" value="{{ card.card_number }}">
+          <div class="flex" style="gap:8px">
+            <input name="new_pin" type="password" inputmode="numeric" maxlength="4" class="mono" placeholder="New PIN" required style="max-width:120px">
+            <button class="btn btn-ghost btn-sm" type="submit">Save</button>
+          </div>
+        </form>
+      </details>
+      {% endif %}
+      <form method="post" action="{{ url_for('customer.cards') }}">
+        <input type="hidden" name="action" value="toggle">
+        <input type="hidden" name="card" value="{{ card.card_number }}">
+        <input type="hidden" name="block" value="{{ '1' if card.status == 'Active' else '0' }}">
+        {% if card.status == 'Active' %}
+        <button class="btn btn-danger btn-sm" type="submit">Block</button>
+        {% else %}
+        <button class="btn btn-success btn-sm" type="submit">Unblock</button>
+        {% endif %}
+      </form>
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">💳</div>
+      No cards yet. Issue one to your left.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

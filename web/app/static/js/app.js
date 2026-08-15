@@ -91,6 +91,40 @@
     update();
   }
 
+  /* ---------- Live FD calculator ---------- */
+  function setupFdCalculator() {
+    const amountEl = document.getElementById("fd-amount");
+    const monthsEl = document.getElementById("fd-months");
+    const quote = document.getElementById("fd-quote");
+    if (!amountEl || !monthsEl || !quote) return;
+
+    function update() {
+      const amount = amountEl.value;
+      const months = monthsEl.value;
+      if (!amount || !months) {
+        quote.style.display = "none";
+        return;
+      }
+      fetch("/api/fd?principal=" + encodeURIComponent(amount) +
+            "&months=" + encodeURIComponent(months), { credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) { quote.style.display = "none"; return; }
+          quote.style.display = "block";
+          document.getElementById("fd-rate").textContent = data.rate_display;
+          document.getElementById("fd-maturity-date").textContent = data.maturity_date;
+          document.getElementById("fd-interest").textContent = data.interest_display;
+          document.getElementById("fd-maturity").textContent = data.maturity_display;
+        })
+        .catch(function () { quote.style.display = "none"; });
+    }
+
+    [amountEl, monthsEl].forEach(function (el) {
+      el.addEventListener("input", update);
+    });
+    update();
+  }
+
   /* ---------- Chart global defaults ---------- */
   const CHART_COLORS = [
     "#6366f1", "#0ea5e9", "#0d9488", "#f59e0b", "#ec4899", "#8b5cf6", "#22c55e",
@@ -298,6 +332,7 @@
     setupToasts();
     setupTabs();
     setupEmiCalculator();
+    setupFdCalculator();
     setupCustomerCharts();
     setupAdminCharts();
   });
