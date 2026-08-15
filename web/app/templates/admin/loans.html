@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% set active_page = 'admin-loans' %}
+{% block title %}Loans — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>Loan desk</h1>
+<p class="muted">Review applications, approve disbursals and track the loan book.</p>
+
+<div class="card" style="margin-top:18px">
+  <div class="card-head"><h3>Pending applications</h3></div>
+  {% if pending %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Loan</th>
+          <th>Customer</th>
+          <th>Account</th>
+          <th class="num">Amount</th>
+          <th class="num">EMI</th>
+          <th class="num">Rate</th>
+          <th>Applied</th>
+          <th style="min-width:160px">Decision</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loan in pending %}
+        <tr>
+          <td class="mono">{{ loan.loan_id }}</td>
+          <td>{{ loan.user_name }} <span class="muted mono">#{{ loan.user_id }}</span></td>
+          <td class="mono">{{ loan.account_number }}</td>
+          <td class="num mono">{{ loan.principal_paise|inr }}</td>
+          <td class="num mono">{{ loan.emi_paise|inr }}</td>
+          <td class="num">{{ loan.rate|round(1) }}%</td>
+          <td class="muted">{{ loan.applied_date }}</td>
+          <td>
+            <div class="flex" style="gap:6px">
+              <form method="post" action="{{ url_for('admin.approve_loan', loan_id=loan.loan_id) }}">
+                <button class="btn btn-success btn-sm" type="submit">Approve</button>
+              </form>
+              <form method="post" action="{{ url_for('admin.reject_loan', loan_id=loan.loan_id) }}">
+                <button class="btn btn-ghost btn-sm" type="submit">Reject</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">🎉</div>Nothing waiting for a decision.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-head"><h3>Active loans</h3></div>
+  {% if active %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Loan</th>
+          <th>Customer</th>
+          <th class="num">Principal</th>
+          <th class="num">Outstanding</th>
+          <th class="num">EMI</th>
+          <th class="num">Paid</th>
+          <th>Next due</th>
+          <th>Repaid</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loan in active %}
+        <tr>
+          <td class="mono">{{ loan.loan_id }}</td>
+          <td>{{ loan.user_name }}</td>
+          <td class="num mono">{{ loan.principal_paise|inr }}</td>
+          <td class="num mono">{{ loan.outstanding_paise|inr }}</td>
+          <td class="num mono">{{ loan.emi_paise|inr }}</td>
+          <td class="num mono">{{ loan.amount_paid_paise|inr }}</td>
+          <td class="mono">{{ loan.next_due_date or '—' }}</td>
+          <td>
+            {% set pct = (loan.amount_paid_paise * 100 / loan.principal_paise)|int if loan.principal_paise else 0 %}
+            <div style="min-width:110px">
+              <div class="progress"><span style="width: {{ pct }}%"></span></div>
+              <span class="hint">{{ pct }}%</span>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="muted center">No active loans.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">📉</div>No active loans right now.</div>
+  {% endif %}
+</div>
+
+{% if history %}
+<div class="card">
+  <div class="card-head"><h3>Closed &amp; rejected</h3></div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Loan</th>
+          <th>Customer</th>
+          <th class="num">Principal</th>
+          <th class="num">Repaid</th>
+          <th>Status</th>
+          <th>Decided</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loan in history %}
+        <tr>
+          <td class="mono">{{ loan.loan_id }}</td>
+          <td>{{ loan.user_name }}</td>
+          <td class="num mono">{{ loan.principal_paise|inr }}</td>
+          <td class="num mono">{{ loan.amount_paid_paise|inr }}</td>
+          <td><span class="pill {{ 'pill-closed' if loan.status == 'Closed' else 'pill-rejected' }}">{{ loan.status }}</span></td>
+          <td class="muted">{{ loan.decision_date[:10] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

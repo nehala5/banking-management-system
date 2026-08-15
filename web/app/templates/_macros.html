@@ -1,0 +1,18 @@
+{% macro tx_kind(type) %}
+  {%- if type == 'DEPOSIT' %}Deposit
+  {%- elif type == 'WITHDRAW' %}Withdrawal
+  {%- elif type == 'TRANSFER_IN' %}Transfer in
+  {%- elif type == 'TRANSFER_OUT' %}Transfer out
+  {%- elif type == 'OPENING' %}Opening
+  {%- elif type == 'INTEREST' %}Interest
+  {%- elif type == 'CLOSED' %}Closed
+  {%- else %}{{ type }}{% endif -%}
+{% endmacro %}
+
+{% macro tx_is_credit(type) -%}
+  {{- 'true' if type == 'DEPOSIT' or type == 'TRANSFER_IN' or type == 'INTEREST' else 'false' -}}
+{%- endmacro %}
+
+{% macro tx_amount(type, paise) -%}
+  {%- if type == 'DEPOSIT' or type == 'TRANSFER_IN' or type == 'INTEREST' -%}+{{ paise|inr }}{%- else -%}-{{ paise|inr }}{%- endif -%}
+{%- endmacro %}

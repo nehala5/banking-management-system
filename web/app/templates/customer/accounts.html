@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tx_kind, tx_is_credit, tx_amount %}
+{% set active_page = 'accounts' %}
+{% block title %}My accounts — OneSky Bank{% endblock %}
+
+{% block content %}
+<div class="flex between wrap">
+  <div>
+    <h1>My accounts</h1>
+    <p class="muted">Every account you hold at OneSky Bank.</p>
+  </div>
+</div>
+
+<div class="acct-grid" style="margin-top:18px">
+  {% for item in data %}
+  <div class="acct-card {{ 'teal' if item.acct.type == 'Checking' }}">
+    <div class="acct-top">
+      <span class="acct-type">{{ item.acct.type }}</span>
+      <span class="acct-status">{{ item.acct.status }}</span>
+    </div>
+    <div class="acct-balance">{{ item.acct.balance_paise|inr }}</div>
+    <div class="acct-number">{{ item.acct.account_number }}</div>
+    <div class="acct-meta">
+      <span>Rate {{ item.acct.interest_rate|round(1) }}% p.a.</span>
+      <span>Opened {{ item.acct.created_at[:10] }}</span>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty" style="grid-column:1/-1">
+    <div class="empty-icon">💳</div>
+    No accounts yet.
+  </div>
+  {% endfor %}
+</div>
+
+{% for item in data %}
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <div>
+      <h3>{{ item.acct.account_number }} <span class="muted" style="font-weight:500">· {{ item.acct.type }}</span></h3>
+      <p class="muted" style="font-size:.82rem; margin:0">
+        Balance {{ item.acct.balance_paise|inr }} · Status {{ item.acct.status }}
+      </p>
+    </div>
+    <div class="flex">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('customer.history', number=item.acct.account_number) }}">Full history</a>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('customer.download_statement', number=item.acct.account_number) }}">⬇ Statement</a>
+    </div>
+  </div>
+
+  {% if item.txs %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Type</th>
+          <th>Remark</th>
+          <th class="num">Amount</th>
+          <th class="num">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in item.txs|reverse %}
+        <tr>
+          <td class="muted">{{ t.timestamp }}</td>
+          <td><span class="pill {{ 'pill-active' if tx_is_credit(t.type) == 'true' else 'pill-pending' }}">{{ tx_kind(t.type) }}</span></td>
+          <td>{{ t.remark or t.counterparty or '—' }}</td>
+          <td class="num {{ 'money-pos' if tx_is_credit(t.type) == 'true' else 'money-neg' }}">{{ tx_amount(t.type, t.amount_paise) }}</td>
+          <td class="num mono">{{ t.balance_after_paise|inr }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><div class="empty-icon">📭</div>No transactions recorded yet.</div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

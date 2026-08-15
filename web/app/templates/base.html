@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OneSky Bank{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{% if current_user %}
+<nav class="topbar">
+  <a class="brand" href="{{ url_for('main.index') }}">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">OneSky<em> Bank</em></span>
+  </a>
+
+  <ul class="nav-links">
+    {% if current_user.role == 'ADMIN' %}
+      <li><a class="{{ 'active' if active_page == 'admin-dashboard' }}" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+      <li><a class="{{ 'active' if active_page == 'admin-customers' }}" href="{{ url_for('admin.customers') }}">Customers</a></li>
+      <li><a class="{{ 'active' if active_page == 'admin-accounts' }}" href="{{ url_for('admin.accounts') }}">Accounts</a></li>
+      <li><a class="{{ 'active' if active_page == 'admin-loans' }}" href="{{ url_for('admin.loans') }}">Loans</a></li>
+      <li><a class="{{ 'active' if active_page == 'admin-reports' }}" href="{{ url_for('admin.reports') }}">Reports</a></li>
+    {% else %}
+      <li><a class="{{ 'active' if active_page == 'dashboard' }}" href="{{ url_for('customer.dashboard') }}">Dashboard</a></li>
+      <li><a class="{{ 'active' if active_page == 'accounts' }}" href="{{ url_for('customer.accounts') }}">My accounts</a></li>
+      <li><a class="{{ 'active' if active_page == 'money' }}" href="{{ url_for('customer.money_page') }}">Send money</a></li>
+      <li><a class="{{ 'active' if active_page == 'loans' }}" href="{{ url_for('customer.loans') }}">Loans</a></li>
+      <li><a class="{{ 'active' if active_page == 'profile' }}" href="{{ url_for('customer.profile') }}">Profile</a></li>
+    {% endif %}
+  </ul>
+
+  <div class="nav-user">
+    <span class="user-chip">
+      <span class="avatar">{{ current_user.name[:1] }}</span>
+      <span class="chip-text">
+        <strong>{{ current_user.name }}</strong>
+        <small>{{ 'Bank Admin' if current_user.role == 'ADMIN' else 'Customer' }} · ID {{ current_user.id }}</small>
+      </span>
+    </span>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('main.logout') }}">Sign out</a>
+  </div>
+</nav>
+{% endif %}
+
+<div class="flash-stack">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        <span>{{ message }}</span>
+        <button class="flash-close" aria-label="Dismiss">&times;</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<main class="page">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <p>OneSky Bank — a full-stack demo built with Flask, SQLite and vanilla JS.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

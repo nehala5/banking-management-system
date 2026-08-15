@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tx_kind, tx_is_credit, tx_amount %}
+{% set active_page = 'accounts' %}
+{% block title %}History — {{ number }}{% endblock %}
+
+{% block content %}
+<div class="flex between wrap">
+  <div>
+    <h1>Transaction history</h1>
+    <p class="muted">All movements on account <span class="mono">{{ number }}</span>.</p>
+  </div>
+  <div class="flex">
+    <a class="btn btn-ghost" href="{{ url_for('customer.accounts') }}">← Back to accounts</a>
+    <a class="btn btn-outline" href="{{ url_for('customer.download_statement', number=number) }}">⬇ Download statement</a>
+  </div>
+</div>
+
+<div class="card" style="margin-top:18px; padding:0">
+  {% if rows %}
+  <div class="table-wrap" style="border:none">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Type</th>
+          <th>Counterparty</th>
+          <th>Remark</th>
+          <th class="num">Amount</th>
+          <th class="num">Balance after</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in rows %}
+        <tr>
+          <td class="muted">{{ t.timestamp }}</td>
+          <td><span class="pill {{ 'pill-active' if tx_is_credit(t.type) == 'true' else 'pill-pending' }}">{{ tx_kind(t.type) }}</span></td>
+          <td>{{ t.counterparty or '—' }}</td>
+          <td>{{ t.remark or '—' }}</td>
+          <td class="num {{ 'money-pos' if tx_is_credit(t.type) == 'true' else 'money-neg' }}">{{ tx_amount(t.type, t.amount_paise) }}</td>
+          <td class="num mono">{{ t.balance_after_paise|inr }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty" style="border:none"><div class="empty-icon">📭</div>No transactions recorded yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -7,6 +7,10 @@ file-based persistence so nothing is lost between runs.
 Built as a layered, maintainable project rather than one giant `main.cpp`:
 models → persistence → services → console UI.
 
+There is also a **web edition** with the same features — Flask + SQLite backend
+and a modern browser frontend with live charts — in the [`web/`](web/) folder
+(see [web/README.md](web/README.md)).
+
 ---
 
 ## Features

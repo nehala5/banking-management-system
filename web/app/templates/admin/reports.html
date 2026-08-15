@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tx_kind %}
+{% set active_page = 'admin-reports' %}
+{% block title %}Reports — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>Reports</h1>
+<p class="muted">Bank-wide numbers and analysis.</p>
+
+<div class="grid grid-4" style="margin-top:18px">
+  <div class="stat brand">
+    <span class="stat-label">Total deposits</span>
+    <span class="stat-value">{{ overview.total_deposits_paise|inr }}</span>
+    <span class="stat-sub">avg {{ overview.avg_balance_paise|inr }} per account</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Loan book</span>
+    <span class="stat-value">{{ overview.loan_book_paise|inr }}</span>
+    <span class="stat-sub">Loan-to-deposit {{ '%.1f'|format(overview.ldr) }}%</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Customers</span>
+    <span class="stat-value">{{ overview.customers }}</span>
+    <span class="stat-sub">{{ overview.active_accounts }} active accounts</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Loans</span>
+    <span class="stat-value">{{ overview.active_loans }} active</span>
+    <span class="stat-sub">{{ overview.pending_loans }} pending</span>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:18px">
+  <div class="card">
+    <div class="card-head"><h3>Daily volume — last 7 days</h3></div>
+    <div class="chart-box"><canvas id="chart-seven-days"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>Transaction type breakdown</h3></div>
+    <div class="chart-box"><canvas id="chart-tx-type"></canvas></div>
+  </div>
+</div>
+
+<div id="admin-charts"></div>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <div class="card" style="padding:0">
+    <div class="card-head" style="padding:18px 20px 0"><h3>Top accounts by balance</h3></div>
+    <div class="table-wrap" style="border:none; box-shadow:none">
+      <table class="data">
+        <thead>
+          <tr><th>#</th><th>Account</th><th>Holder</th><th class="num">Balance</th></tr>
+        </thead>
+        <tbody>
+          {% for a in top %}
+          <tr>
+            <td class="muted">{{ loop.index }}</td>
+            <td class="mono">{{ a.account_number }}</td>
+            <td>{{ a.user_name }}</td>
+            <td class="num mono">{{ a.balance_paise|inr }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0">
+    <div class="card-head" style="padding:18px 20px 0"><h3>Volume by transaction type</h3></div>
+    <div class="table-wrap" style="border:none; box-shadow:none">
+      <table class="data">
+        <thead>
+          <tr><th>Type</th><th class="num">Count</th><th class="num">Total value</th></tr>
+        </thead>
+        <tbody>
+          {% for t in by_type %}
+          <tr>
+            <td>{{ tx_kind(t.type) }}</td>
+            <td class="num">{{ t.c }}</td>
+            <td class="num mono">{{ t.total|inr }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="muted center">No transactions.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

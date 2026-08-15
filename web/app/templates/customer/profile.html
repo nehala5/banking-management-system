@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set active_page = 'profile' %}
+{% block title %}My profile — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>My profile</h1>
+<p class="muted">Your details at a glance.</p>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <div class="card">
+    <div class="card-head"><h3>Profile details</h3></div>
+    <div class="stack">
+      <div class="flex"><span class="muted" style="width:110px">Name</span><strong>{{ current_user.name }}</strong></div>
+      <div class="flex"><span class="muted" style="width:110px">User ID</span><span class="mono">{{ current_user.id }}</span></div>
+      <div class="flex"><span class="muted" style="width:110px">Email</span><span>{{ current_user.email }}</span></div>
+      <div class="flex"><span class="muted" style="width:110px">Phone</span><span class="mono">{{ current_user.phone }}</span></div>
+      <div class="flex"><span class="muted" style="width:110px">Address</span><span>{{ current_user.address or '—' }}</span></div>
+      <div class="flex"><span class="muted" style="width:110px">Customer since</span><span>{{ current_user.created_at[:10] }}</span></div>
+      <div class="flex"><span class="muted" style="width:110px">Role</span><span class="pill pill-customer">Customer</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Summary</h3></div>
+    <div class="stack">
+      <div class="flex between"><span class="muted">Accounts</span><strong>{{ summary.account_count }} ({{ summary.active_accounts }} active)</strong></div>
+      <div class="flex between"><span class="muted">Total balance</span><strong class="mono">{{ summary.total_balance_paise|inr }}</strong></div>
+      <div class="flex between"><span class="muted">Active loans</span><strong>{{ summary.loan_count }}</strong></div>
+      <div class="flex between"><span class="muted">Loan outstanding</span><strong class="mono">{{ summary.loan_outstanding_paise|inr or '—' }}</strong></div>
+    </div>
+    <div class="divider"></div>
+    <p class="hint">
+      Statements can be downloaded from
+      <a href="{{ url_for('customer.accounts') }}">My accounts</a>.
+    </p>
+  </div>
+</div>
+{% endblock %}

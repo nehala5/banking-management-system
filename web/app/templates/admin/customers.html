@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% set active_page = 'admin-customers' %}
+{% block title %}Customers — OneSky Bank{% endblock %}
+
+{% block content %}
+<div class="flex between wrap">
+  <div>
+    <h1>Customers</h1>
+    <p class="muted">{{ customers|length }} customer{{ 's' if customers|length != 1 }} on record.</p>
+  </div>
+  <form class="search-bar" method="get" action="{{ url_for('admin.customers') }}">
+    <input name="q" value="{{ q }}" placeholder="Search by name, email or phone">
+    <button class="btn btn-ghost" type="submit">Search</button>
+  </form>
+</div>
+
+<div class="card" style="margin-top:18px; padding:0">
+  {% if customers %}
+  <div class="table-wrap" style="border:none">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th class="num">Total balance</th>
+          <th>Joined</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customers %}
+        <tr>
+          <td class="mono">{{ c.id }}</td>
+          <td><strong>{{ c.name }}</strong></td>
+          <td class="muted">{{ c.email }}</td>
+          <td class="mono">{{ c.phone }}</td>
+          <td class="num mono">{{ c.total_balance|inr }}</td>
+          <td class="muted">{{ c.created_at[:10] }}</td>
+          <td><a class="btn btn-outline btn-sm" href="{{ url_for('admin.customer_detail', user_id=c.id) }}">View →</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty" style="border:none">
+    <div class="empty-icon">🔍</div>
+    {% if q %}No customers match "{{ q }}".{% else %}No customers yet.{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

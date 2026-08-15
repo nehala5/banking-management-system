@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% set active_page = 'loans' %}
+{% block title %}Loans — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>Loans</h1>
+<p class="muted">Apply for a loan against your savings or repay an active one.</p>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <!-- ---------- Apply ---------- -->
+  <div class="card">
+    <div class="card-head"><h3>Apply for a loan</h3></div>
+    <form class="form-grid" method="post" action="{{ url_for('customer.loans') }}">
+      <div class="form-row">
+        <label for="emi-account">Savings account</label>
+        <select id="emi-account" name="account">
+          {% for a in savings %}
+          <option value="{{ a.account_number }}">{{ a.account_number }} ({{ a.balance_paise|inr }})</option>
+          {% else %}
+          <option value="">— no savings account —</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="emi-amount">Loan amount</label>
+        <input id="emi-amount" name="amount" inputmode="decimal" class="mono" placeholder="e.g. 50000" required>
+      </div>
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px">
+        <div class="form-row">
+          <label for="emi-rate">Rate (% p.a.)</label>
+          <input id="emi-rate" name="rate" inputmode="decimal" value="8.5" required>
+        </div>
+        <div class="form-row">
+          <label for="emi-months">Tenure (months)</label>
+          <input id="emi-months" name="months" inputmode="numeric" value="12" required>
+        </div>
+      </div>
+
+      <div class="emi-quote" id="emi-quote" style="display:none">
+        <div class="flex between"><span class="hint">EMI</span><span class="emi-big" id="emi-value">—</span></div>
+        <div class="emi-row"><span>Total payable</span><span id="emi-total">—</span></div>
+        <div class="emi-row"><span>Total interest</span><span id="emi-interest">—</span></div>
+      </div>
+
+      <button class="btn btn-primary" type="submit" {{ 'disabled' if not savings }}>Submit application</button>
+      {% if not savings %}<span class="hint">You need a savings account to apply for a loan.</span>{% endif %}
+    </form>
+  </div>
+
+  <!-- ---------- My loans ---------- -->
+  <div>
+    {% for loan in loans %}
+    <div class="card">
+      <div class="flex between wrap">
+        <div>
+          <h3 style="margin:0">{{ loan.loan_id }} <span class="pill {{ 'pill-active' if loan.status == 'Active' else 'pill-pending' if loan.status == 'Pending' else 'pill-rejected' if loan.status == 'Rejected' else 'pill-closed' }}">{{ loan.status }}</span></h3>
+          <p class="muted" style="font-size:.82rem; margin-top:4px">
+            {{ loan.principal_paise|inr }} @ {{ loan.rate|round(1) }}% · {{ loan.tenure_months }} months · applied {{ loan.applied_date[:10] }}
+          </p>
+        </div>
+        {% if loan.status == 'Active' and loan.outstanding_paise > 0 %}
+        <form method="post" action="{{ url_for('customer.pay_emi', loan_id=loan.loan_id) }}">
+          <button class="btn btn-success btn-sm" type="submit">Pay EMI {{ loan.emi_paise|inr }}</button>
+        </form>
+        {% endif %}
+      </div>
+
+      <div class="stack" style="margin-top:12px">
+        <div class="flex between"><span class="muted">Outstanding</span><strong class="mono">{{ loan.outstanding_paise|inr }}</strong></div>
+        <div class="flex between"><span class="muted">Monthly EMI</span><span class="mono">{{ loan.emi_paise|inr }}</span></div>
+        <div class="flex between"><span class="muted">EMIs paid</span><span class="mono">{{ loan.emi_paid_count }} / {{ loan.tenure_months }}</span></div>
+        <div class="flex between"><span class="muted">Total paid</span><span class="mono">{{ loan.amount_paid_paise|inr }}</span></div>
+        {% if loan.status == 'Active' %}
+        <div class="flex between"><span class="muted">Next due</span><span class="mono">{{ loan.next_due_date or '—' }}</span></div>
+        {% endif %}
+      </div>
+
+      {% if loan.status in ('Active', 'Closed') %}
+      <div style="margin-top:12px">
+        {% set paid_pct = (loan.amount_paid_paise * 100 / loan.principal_paise)|int if loan.principal_paise else 0 %}
+        <div class="progress"><span style="width: {{ paid_pct }}%"></span></div>
+        <p class="hint" style="margin-top:6px">{{ paid_pct }}% repaid</p>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">📉</div>
+      You haven't applied for any loans yet.
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

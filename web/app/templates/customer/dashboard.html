@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tx_kind, tx_is_credit, tx_amount %}
+{% set active_page = 'dashboard' %}
+{% block title %}Dashboard — OneSky Bank{% endblock %}
+
+{% block content %}
+<div class="flex between wrap">
+  <div>
+    <h1>{{ greeting }}, {{ current_user.name.split(' ')[0] }}!</h1>
+    <p class="muted">Here is what is happening with your money today.</p>
+  </div>
+  {% if accounts %}
+    <a class="btn btn-outline" href="{{ url_for('customer.download_statement', number=accounts[0].account_number) }}">⬇ Download statement</a>
+  {% endif %}
+</div>
+
+<div class="grid grid-4" style="margin-top:18px">
+  <div class="stat brand">
+    <span class="stat-label">Total balance</span>
+    <span class="stat-value">{{ summary.total_balance_paise|inr }}</span>
+    <span class="stat-sub">across {{ summary.account_count }} account{{ 's' if summary.account_count != 1 }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Active accounts</span>
+    <span class="stat-value">{{ summary.active_accounts }}</span>
+    <span class="stat-sub">of {{ summary.account_count }} total</span>
+  </div>
+  <div class="stat {{ 'warn' if summary.loan_outstanding_paise else '' }}">
+    <span class="stat-label">Loan outstanding</span>
+    <span class="stat-value">{{ summary.loan_outstanding_paise|inr if summary.loan_outstanding_paise else '—' }}</span>
+    <span class="stat-sub">{{ summary.loan_count }} active loan{{ 's' if summary.loan_count != 1 }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Savings rate</span>
+    <span class="stat-value">{{ '3.5%' }} p.a.</span>
+    <span class="stat-sub">credited monthly</span>
+  </div>
+</div>
+
+<div class="quick-grid" style="margin-top:18px">
+  <a class="quick" href="{{ url_for('customer.money_page', tab='deposit') }}">
+    <span class="quick-icon">🏦</span>
+    <span><span class="quick-title">Deposit</span><br><span class="quick-sub">Add cash to an account</span></span>
+  </a>
+  <a class="quick" href="{{ url_for('customer.money_page', tab='withdraw') }}">
+    <span class="quick-icon">💸</span>
+    <span><span class="quick-title">Withdraw</span><br><span class="quick-sub">Take money out</span></span>
+  </a>
+  <a class="quick" href="{{ url_for('customer.money_page', tab='transfer') }}">
+    <span class="quick-icon">🔄</span>
+    <span><span class="quick-title">Transfer</span><br><span class="quick-sub">Move between accounts</span></span>
+  </a>
+  <a class="quick" href="{{ url_for('customer.loans') }}">
+    <span class="quick-icon">📈</span>
+    <span><span class="quick-title">Loans</span><br><span class="quick-sub">Apply or repay an EMI</span></span>
+  </a>
+</div>
+
+<div class="grid grid-2" style="margin-top:18px">
+  {% for acct in accounts %}
+  <div class="acct-card {{ 'teal' if acct.type == 'Checking' }}">
+    <div class="acct-top">
+      <span class="acct-type">{{ acct.type }}</span>
+      <span class="acct-status">{{ acct.status }}</span>
+    </div>
+    <div class="acct-balance">{{ acct.balance_paise|inr }}</div>
+    <div class="acct-number">{{ acct.account_number }}</div>
+    <div class="acct-meta">
+      <span>Rate: {{ acct.interest_rate|round(1) }}%</span>
+      <span>Opened {{ acct.created_at[:10] }}</span>
+    </div>
+    <div style="margin-top:14px; position:relative">
+      <a class="btn btn-sm" style="background:rgba(255,255,255,.2); color:#fff" href="{{ url_for('customer.history', number=acct.account_number) }}">View history →</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty" style="grid-column:1/-1">
+    <div class="empty-icon">💳</div>
+    You don't have any accounts yet. Please contact your branch or the bank admin.
+  </div>
+  {% endfor %}
+</div>
+
+<div id="customer-charts" class="grid grid-2" style="margin-top:18px">
+  {% if accounts|length > 1 %}
+  <div class="card">
+    <div class="card-head"><h3>Where your money lives</h3></div>
+    <div class="chart-box short"><canvas id="chart-account-mix"></canvas></div>
+  </div>
+  {% endif %}
+  {% if recent %}
+  <div class="card">
+    <div class="card-head"><h3>Latest activity</h3></div>
+    <div class="chart-box short"><canvas id="chart-recent-activity"></canvas></div>
+  </div>
+  {% endif %}
+</div>
+
+{% if recent %}
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <h3>Recent transactions</h3>
+    <a href="{{ url_for('customer.accounts') }}">All accounts →</a>
+  </div>
+  <ul class="timeline">
+    {% for t in recent %}
+    <li>
+      <div class="t-time">{{ t.timestamp }} · {{ t.account_number }}</div>
+      <div class="flex between">
+        <span class="t-title">{{ tx_kind(t.type) }} — {{ t.remark or t.counterparty }}</span>
+        <span class="t-amount {{ 'pos' if tx_is_credit(t.type) == 'true' else 'neg' }}">{{ tx_amount(t.type, t.amount_paise) }}</span>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}OneSky Bank — Welcome{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-card">
+    <div class="logo-big">OneSky <em>Bank</em></div>
+    <p class="tagline">{{ greeting }}! Banking the way it should feel — simple, friendly and a little bit sky-high.</p>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="{{ url_for('main.login') }}">Sign in</a>
+      <a class="btn btn-outline btn-lg" href="{{ url_for('main.register') }}">Open an account</a>
+    </div>
+
+    <div class="hero-note">
+      <strong>First run?</strong> A demo admin and customer are pre-seeded so you can explore right away:
+      <ul>
+        <li>Admin <code>1000</code> · PIN <code>1234</code></li>
+        <li>Demo customer <code>1001</code> · PIN <code>0000</code></li>
+      </ul>
+      Sign in as the admin to open accounts, approve loans and run monthly interest; or register a brand-new customer and try deposits, transfers and EMI payments.
+    </div>
+  </div>
+</section>
+{% endblock %}

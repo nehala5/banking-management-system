@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% set active_page = 'money' %}
+{% block title %}Send money — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>Send money</h1>
+<p class="muted">Deposit, withdraw or transfer across your accounts.</p>
+
+<div class="card" style="margin-top:18px; max-width:620px">
+  <div class="tabs" data-tabs>
+    <button class="tab-btn {{ 'active' if active_tab == 'deposit' }}" data-tab="deposit" type="button">Deposit</button>
+    <button class="tab-btn {{ 'active' if active_tab == 'withdraw' }}" data-tab="withdraw" type="button">Withdraw</button>
+    <button class="tab-btn {{ 'active' if active_tab == 'transfer' }}" data-tab="transfer" type="button">Transfer</button>
+  </div>
+
+  <!-- ---------- Deposit ---------- -->
+  <div class="tab-panel {{ 'active' if active_tab == 'deposit' }}" data-panel="deposit">
+    <form class="form-grid" method="post" action="{{ url_for('customer.money_page', tab='deposit') }}">
+      <input type="hidden" name="action" value="deposit">
+      <div class="form-row">
+        <label for="d_account">Into account</label>
+        <select id="d_account" name="account">
+          {% for a in accounts %}
+          <option value="{{ a.account_number }}">{{ a.type }} · {{ a.account_number }} ({{ a.balance_paise|inr }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="d_amount">Amount</label>
+        <input id="d_amount" name="amount" inputmode="decimal" class="mono" placeholder="e.g. 2500" required>
+      </div>
+      <div class="form-row">
+        <label for="d_from">Counterparty (optional)</label>
+        <input id="d_from" name="counterparty" placeholder="e.g. Cash deposit, Salary credit">
+      </div>
+      <div class="form-row">
+        <label for="d_remark">Remark (optional)</label>
+        <input id="d_remark" name="remark" placeholder="e.g. Savings deposit">
+      </div>
+      <button class="btn btn-primary" type="submit">Deposit money</button>
+    </form>
+  </div>
+
+  <!-- ---------- Withdraw ---------- -->
+  <div class="tab-panel {{ 'active' if active_tab == 'withdraw' }}" data-panel="withdraw">
+    <form class="form-grid" method="post" action="{{ url_for('customer.money_page', tab='withdraw') }}">
+      <input type="hidden" name="action" value="withdraw">
+      <div class="form-row">
+        <label for="w_account">From account</label>
+        <select id="w_account" name="account">
+          {% for a in accounts %}
+          <option value="{{ a.account_number }}">{{ a.type }} · {{ a.account_number }} ({{ a.balance_paise|inr }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="w_amount">Amount</label>
+        <input id="w_amount" name="amount" inputmode="decimal" class="mono" placeholder="e.g. 500" required>
+      </div>
+      <div class="form-row">
+        <label for="w_to">Counterparty (optional)</label>
+        <input id="w_to" name="counterparty" placeholder="e.g. ATM withdrawal, Rent payment">
+      </div>
+      <div class="form-row">
+        <label for="w_remark">Remark (optional)</label>
+        <input id="w_remark" name="remark" placeholder="e.g. Cash withdrawal">
+      </div>
+      <button class="btn btn-primary" type="submit">Withdraw money</button>
+    </form>
+  </div>
+
+  <!-- ---------- Transfer ---------- -->
+  <div class="tab-panel {{ 'active' if active_tab == 'transfer' }}" data-panel="transfer">
+    <form class="form-grid" method="post" action="{{ url_for('customer.money_page', tab='transfer') }}">
+      <input type="hidden" name="action" value="transfer">
+      <div class="form-row">
+        <label for="t_from">From account</label>
+        <select id="t_from" name="account">
+          {% for a in accounts %}
+          <option value="{{ a.account_number }}">{{ a.type }} · {{ a.account_number }} ({{ a.balance_paise|inr }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="t_to">To account number</label>
+        <input id="t_to" name="to_account" class="mono" placeholder="e.g. OB000002" required>
+        <span class="hint">Any active OneSky account — yours or another customer's.</span>
+      </div>
+      <div class="form-row">
+        <label for="t_amount">Amount</label>
+        <input id="t_amount" name="amount" inputmode="decimal" class="mono" placeholder="e.g. 2000" required>
+      </div>
+      <div class="form-row">
+        <label for="t_remark">Remark (optional)</label>
+        <input id="t_remark" name="remark" placeholder="e.g. Family transfer">
+      </div>
+      <button class="btn btn-primary" type="submit">Transfer money</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Sign in — OneSky Bank{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card">
+    <h1>Welcome back</h1>
+    <p class="sub">Sign in with your user ID and PIN.</p>
+
+    <form class="form-grid" method="post" action="{{ url_for('main.login') }}">
+      <div class="form-row">
+        <label for="user_id">User ID</label>
+        <input id="user_id" name="user_id" inputmode="numeric" class="mono" placeholder="e.g. 1001" autofocus required>
+      </div>
+      <div class="form-row">
+        <label for="pin">PIN</label>
+        <input id="pin" name="pin" type="password" inputmode="numeric" maxlength="4" placeholder="4-digit PIN" required>
+      </div>
+      <button class="btn btn-primary btn-lg" type="submit">Sign in</button>
+    </form>
+
+    <div class="divider"></div>
+    <p class="muted center" style="font-size:.86rem">
+      New here? <a href="{{ url_for('main.register') }}">Create a customer account</a>.
+    </p>
+  </div>
+</section>
+{% endblock %}

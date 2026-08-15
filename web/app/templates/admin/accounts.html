@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% set active_page = 'admin-accounts' %}
+{% block title %}Accounts — OneSky Bank{% endblock %}
+
+{% block content %}
+<h1>Accounts</h1>
+<p class="muted">Open new accounts, adjust savings rates and close accounts.</p>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <div class="card">
+    <div class="card-head"><h3>Open a new account</h3></div>
+    <form class="form-grid" method="post" action="{{ url_for('admin.open_account') }}">
+      <div class="form-row">
+        <label for="oc_user">Customer</label>
+        <select id="oc_user" name="user_id">
+          {% for c in customers %}
+          <option value="{{ c.id }}">#{{ c.id }} — {{ c.name }}</option>
+          {% else %}
+          <option value="">— no customers —</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 12px">
+        <div class="form-row">
+          <label for="oc_type">Account type</label>
+          <select id="oc_type" name="type">
+            <option value="Savings">Savings</option>
+            <option value="Checking">Checking</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="oc_opening">Opening deposit</label>
+          <input id="oc_opening" name="opening" inputmode="decimal" class="mono" value="0" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="oc_remark">Remark (optional)</label>
+        <input id="oc_remark" name="remark" placeholder="e.g. Opened at branch">
+      </div>
+      <button class="btn btn-primary" type="submit" {{ 'disabled' if not customers }}>Open account</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Accounts on the books</h3></div>
+    <p class="muted" style="font-size:.85rem">
+      {{ accounts|length }} account{{ 's' if accounts|length != 1 }}. Closing an account requires a zero balance and no outstanding loans.
+    </p>
+  </div>
+</div>
+
+<div class="card" style="margin-top:18px; padding:0">
+  <div class="table-wrap" style="border:none">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th class="num">Balance</th>
+          <th class="num">Rate</th>
+          <th>Status</th>
+          <th style="min-width:210px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in accounts %}
+        <tr>
+          <td class="mono">{{ a.account_number }}</td>
+          <td>{{ a.user_name }} <span class="muted mono">#{{ a.user_id }}</span></td>
+          <td>{{ a.type }}</td>
+          <td class="num mono">{{ a.balance_paise|inr }}</td>
+          <td class="num">{{ a.interest_rate|round(1) }}%</td>
+          <td><span class="pill {{ 'pill-active' if a.status == 'Active' else 'pill-closed' }}">{{ a.status }}</span></td>
+          <td>
+            <div class="flex wrap">
+              {% if a.type == 'Savings' and a.status == 'Active' %}
+              <form method="post" action="{{ url_for('admin.set_rate', number=a.account_number) }}" class="flex" style="gap:6px">
+                <input name="rate" class="mono" style="width:64px" value="{{ a.interest_rate|round(1) }}" placeholder="%">
+                <button class="btn btn-ghost btn-sm" type="submit">Set rate</button>
+              </form>
+              {% endif %}
+              {% if a.status == 'Active' %}
+              <form method="post" action="{{ url_for('admin.close_account', number=a.account_number) }}"
+                    onsubmit="return confirm('Close account {{ a.account_number }}?')">
+                <button class="btn btn-danger btn-sm" type="submit">Close</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="muted center">No accounts found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

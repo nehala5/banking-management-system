@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tx_kind, tx_is_credit, tx_amount %}
+{% set active_page = 'admin-customers' %}
+{% block title %}Customer — {{ user.name }}{% endblock %}
+
+{% block content %}
+<div class="flex between wrap">
+  <div>
+    <h1>{{ user.name }}</h1>
+    <p class="muted">Customer ID <span class="mono">{{ user.id }}</span> · since {{ user.created_at[:10] }}</p>
+  </div>
+  <a class="btn btn-ghost" href="{{ url_for('admin.customers') }}">← All customers</a>
+</div>
+
+<div class="grid grid-4" style="margin-top:18px">
+  <div class="stat brand">
+    <span class="stat-label">Total balance</span>
+    <span class="stat-value">{{ summary.total_balance_paise|inr }}</span>
+    <span class="stat-sub">{{ summary.active_accounts }} active accounts</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Accounts</span>
+    <span class="stat-value">{{ summary.account_count }}</span>
+    <span class="stat-sub">of which {{ summary.active_accounts }} active</span>
+  </div>
+  <div class="stat {{ 'warn' if summary.loan_outstanding_paise else '' }}">
+    <span class="stat-label">Loan outstanding</span>
+    <span class="stat-value">{{ summary.loan_outstanding_paise|inr if summary.loan_outstanding_paise else '—' }}</span>
+    <span class="stat-sub">{{ summary.loan_count }} active loan{{ 's' if summary.loan_count != 1 }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Contact</span>
+    <span class="stat-value" style="font-size:1rem">{{ user.email }}</span>
+    <span class="stat-sub mono">{{ user.phone }}</span>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top:18px; align-items:start">
+  <div class="card" style="padding:0">
+    <div class="card-head" style="padding:18px 20px 0"><h3>Accounts</h3></div>
+    <div class="table-wrap" style="border:none; box-shadow:none">
+      <table class="data">
+        <thead>
+          <tr><th>Number</th><th>Type</th><th class="num">Balance</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for a in accounts %}
+          <tr>
+            <td class="mono">{{ a.account_number }}</td>
+            <td>{{ a.type }}</td>
+            <td class="num mono">{{ a.balance_paise|inr }}</td>
+            <td><span class="pill {{ 'pill-active' if a.status == 'Active' else 'pill-closed' }}">{{ a.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="muted center">No accounts.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0">
+    <div class="card-head" style="padding:18px 20px 0"><h3>Loans</h3></div>
+    <div class="table-wrap" style="border:none; box-shadow:none">
+      <table class="data">
+        <thead>
+          <tr><th>Loan</th><th class="num">Principal</th><th class="num">Outstanding</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+          <tr>
+            <td class="mono">{{ loan.loan_id }}</td>
+            <td class="num mono">{{ loan.principal_paise|inr }}</td>
+            <td class="num mono">{{ loan.outstanding_paise|inr }}</td>
+            <td><span class="pill {{ 'pill-active' if loan.status == 'Active' else 'pill-pending' if loan.status == 'Pending' else 'pill-rejected' if loan.status == 'Rejected' else 'pill-closed' }}">{{ loan.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="muted center">No loans.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

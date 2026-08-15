@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Forbidden — OneSky Bank{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card center">
+    <div style="font-size:3rem">🚫</div>
+    <h1>403 — Access denied</h1>
+    <p class="muted">You don't have permission to view this page.</p>
+    <a class="btn btn-primary" href="{{ url_for('main.index') }}">Back to the bank</a>
+  </div>
+</section>
+{% endblock %}

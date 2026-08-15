@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong — OneSky Bank{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-card center">
+    <div style="font-size:3rem">🌩️</div>
+    <h1>500 — Something went wrong</h1>
+    <p class="muted">An unexpected error occurred. The bank is looking into it.</p>
+    <a class="btn btn-primary" href="{{ url_for('main.index') }}">Back to the bank</a>
+  </div>
+</section>
+{% endblock %}
